@@ -383,17 +383,20 @@ span.flatpickr-weekday { background: #16213e !important; color: rgba(255,255,255
     <div class="section-card">
       <div class="sec-header"><div class="sec-num">04</div><div class="sec-titles"><div class="section-title">Budget & Timeline</div><div class="section-desc">Help us tailor a proposal that works for you.</div></div></div>
       <div class="note-box"><strong>How it works:</strong> Select your budget range below. After reviewing your brief we'll send a custom quote.</div>
-      <div class="field">
+      <div class="field" id="budgetField">
         <label class="fl">Budget Range (USD) <span class="req">*</span></label>
         <div class="radio-grid">
-          <label class="radio-item"><input type="radio" name="budget" value="Under $500" required/> Under $500</label>
+          <label class="radio-item"><input type="radio" name="budget" value="Under $500"/> Under $500</label>
           <label class="radio-item"><input type="radio" name="budget" value="$500 – $1,000"/> $500 – $1,000</label>
           <label class="radio-item"><input type="radio" name="budget" value="$1,000 – $2,500"/> $1,000 – $2,500</label>
           <label class="radio-item"><input type="radio" name="budget" value="$2,500 – $5,000"/> $2,500 – $5,000</label>
           <label class="radio-item"><input type="radio" name="budget" value="$5,000 – $10,000"/> $5,000 – $10,000</label>
-          <label class="radio-item"><input type="radio" name="budget" value="$10,000+"/> $10,000+</label>
+          <label class="radio-item"><input type="radio" name="budget" value="custom" id="budgetCustomCb"/> $10,000+</label>
         </div>
-        <div class="field-error">Please select a budget range.</div>
+        <div class="other-input" id="budgetCustomInput">
+          <input type="text" name="budget_custom" placeholder="e.g. $12,000 / $25,000 / Let's discuss…"/>
+        </div>
+        <div class="field-error" id="budgetError">Please select a budget range.</div>
       </div>
       <div class="smart-row">
         <div class="field">
@@ -529,11 +532,10 @@ document.getElementById('mainForm').addEventListener('submit',async function(e){
     if(f.type==='checkbox'&&!f.checked){f.classList.add('error');if(err)err.style.display='block';valid=false;}
     else if(f.type!=='checkbox'&&!f.value.trim()){f.classList.add('error');if(err)err.style.display='block';valid=false;}
   });
-  const rg={};
-  this.querySelectorAll('[required][type="radio"]').forEach(r=>{rg[r.name]=rg[r.name]||r.checked;});
-  Object.entries(rg).forEach(([name,ok])=>{
-    if(!ok){const err=this.querySelector(`[name="${name}"]`)?.closest('.field')?.querySelector('.field-error');if(err)err.style.display='block';valid=false;}
-  });
+  // Validate budget separately
+  const budgetChecked = document.querySelector('[name="budget"]:checked');
+  if(!budgetChecked){document.getElementById('budgetError').style.display='block';valid=false;}
+  else {document.getElementById('budgetError').style.display='none';}
   if(!valid){this.querySelector('.error,[required]:invalid')?.scrollIntoView({behavior:'smooth',block:'center'});return;}
   const btn=document.getElementById('submitBtn');btn.textContent='Submitting…';btn.disabled=true;
   try{
@@ -557,6 +559,23 @@ document.querySelectorAll('.flatpickr-field').forEach(function(el) {
     animate: true,
     onReady: function(_, __, fp) {
       fp.calendarContainer.style.fontFamily = "'Inter', sans-serif";
+    }
+  });
+});
+</script>
+
+<script>
+// Budget custom input toggle
+document.getElementById('budgetCustomCb').addEventListener('change', function() {
+  document.getElementById('budgetCustomInput').classList.toggle('visible', this.checked);
+});
+document.querySelectorAll('[name="budget"]').forEach(function(r) {
+  r.addEventListener('change', function() {
+    // Hide error when any budget selected
+    document.getElementById('budgetError').style.display = 'none';
+    // Hide custom input if not $10k+
+    if(this.value !== 'custom') {
+      document.getElementById('budgetCustomInput').classList.remove('visible');
     }
   });
 });
